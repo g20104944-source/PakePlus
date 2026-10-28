@@ -1,26 +1,45 @@
-window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("script");t.src="https://www.googletagmanager.com/gtag/js?id=G-W5GKHM0893",t.async=!0,document.head.appendChild(t);const n=document.createElement("script");n.textContent="window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());gtag('config', 'G-W5GKHM0893');",document.body.appendChild(n)});// very important, if you don't know what it is, don't touch it
-// 非常重要，不懂代码不要动，这里可以解决80%的问题，也可以生产1000+的bug
+window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("script");t.src="https://www.googletagmanager.com/gtag/js?id=G-W5GKHM0893",t.async=!0,document.head.appendChild(t);const n=document.createElement("script");n.textContent="window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());gtag('config', 'G-W5GKHM0893');",document.body.appendChild(n)});// ===== 原有逻辑：处理 _blank 链接和 window.open，保持不变 =====
 const hookClick = (e) => {
-    const origin = e.target.closest('a')
-    const isBaseTargetBlank = document.querySelector(
-        'head base[target="_blank"]'
-    )
-    console.log('origin', origin, isBaseTargetBlank)
-    if (
-        (origin && origin.href && origin.target === '_blank') ||
-        (origin && origin.href && isBaseTargetBlank)
-    ) {
-        e.preventDefault()
-        console.log('handle origin', origin)
-        location.href = origin.href
-    } else {
-        console.log('not handle origin', origin)
-    }
+  const origin = e.target.closest('a')
+  const isBaseTargetBlank = document.querySelector('head base[target="_blank"]')
+  if (
+    (origin && origin.href && origin.target === '_blank') ||
+    (origin && origin.href && isBaseTargetBlank)
+  ) {
+    e.preventDefault()
+    location.href = origin.href
+  }
 }
-
 window.open = function (url, target, features) {
-    console.log('open', url, target, features)
-    location.href = url
+  location.href = url
 }
-
 document.addEventListener('click', hookClick, { capture: true })
+
+// ===== 新增：去除桌面端左右白边 =====
+const fixLayoutStyle = `
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+  }
+  body > *, #app, .app, #root, .root,
+  body > div, body > main {
+    max-width: none !important;
+    width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+`
+function injectFixStyle() {
+  const style = document.createElement('style')
+  style.id = 'pake-fix-layout'
+  style.textContent = fixLayoutStyle
+  document.head.appendChild(style)
+}
+if (document.head) {
+  injectFixStyle()
+} else {
+  document.addEventListener('DOMContentLoaded', injectFixStyle)
+}
